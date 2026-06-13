@@ -6,7 +6,7 @@ void main() {
 
 
 class Mortgage{
-  int amount;
+  double amount;
   int years;
   double interest;
 
@@ -52,6 +52,9 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                   0.1325, 0.135, 0.1375, 0.14,
                                   0.1425, 0.145, 0.1475, 0.15,];
 
+    final _formKey = GlobalKey<FormState>();
+    double? _selectedValue = 0.02;
+
     @override 
     void dispose(){
       _amountController.dispose();
@@ -61,7 +64,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
     @override
     Widget build(BuildContext context){
       return Scaffold(
-          backgroundColor: Colors.indigo,
           appBar: AppBar(
             backgroundColor: Colors.indigo,
             title: Text("Enter details for calculation")
@@ -72,15 +74,110 @@ class _DetailsScreenState extends State<DetailsScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+
+                //Adding the radio button for the years selection
+                RadioGroup<int>(
+                  groupValue: yearselection,
+                  onChanged: (val) => setState(() => yearselection = val!),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text('Year Selection: '),
+                      Radio<int>(value: 10),
+                      Text('10'),
+                      Radio<int>(value: 15),
+                      Text('15'),
+                      Radio<int>(value: 30),
+                      Text('30')
+                    ]
+                  )
+                ),
+
+                //The row for storing the text field
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(width: 80, child: Text('Amount')),
+                    SizedBox(
+                      width: 240,
+                      //Using a Form with validation to ensure the value is a double
+                      //Makes sure app doesn't crash when try to pass in the values to
+                      //The next screen
+                      child: Form(
+                        key: _formKey,
+                        child: TextFormField(
+                            controller: _amountController,
+                            decoration: InputDecoration(
+                              labelText: 'Enter amount'
+                            ),
+                            //This is what's used to check if the value is actually entered
+                            validator: (value){
+                              if (value==null || value.isEmpty){
+                                return 'Enter an amount';
+                              }
+
+                              //This is the logic to check to see if it's a valid double
+                              if (double.tryParse(value) == null) {
+                                return 'Enter a valid number in decimal form';
+                              }
+
+                              //If both conditions are met, it's a valid value
+                              return null;
+                            }
+                          )
+                        )
+                      ) 
+                  ]
+                ),
+
+
+                //The drop down button to select the interest rate
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('Select the interest rate:'),
+                    SizedBox(width: 20),
+                    DropdownButton<double>(
+                      value: _selectedValue,
+                      hint: Text('Choose rate'),
+                      items: _rates.map((double rate){
+                        return DropdownMenuItem<double>(
+                          value: rate,
+                          child: Text(rate.toString()),
+                        );
+                      }).toList(),
+                      onChanged: (double? newValue) {
+                        setState((){
+                          _selectedValue = newValue;
+                        });
+                      },
+                    ),
+                  ]
+                ),
                 
                 ElevatedButton(
                   style: ButtonStyle(backgroundColor: WidgetStateProperty.all(Colors.blue)),
                   onPressed: (){
-                  Navigator.push(context, MaterialPageRoute(
+                  //Check to see that the text field has a valid number inside it 
+                  if (_formKey.currentState!.validate()){
+                    //Create the object to be used in the next screen
+                    final mortgage = Mortgage(
+                      //Still have to parse the text field into a double, since it's stored as a string.
+                      amount: double.parse(_amountController.text),
+                      years: yearselection,
+                      interest: _selectedValue!
+                    );
+
+                    //Only navigates if the fields have the correct values
+                    Navigator.push(context, MaterialPageRoute(
                             builder: (context) => ResultsScreen(),
                           )
                       );
-                    },
+                    }//End of validator logic
+                  },
                     child: const Text('Calculate', style: TextStyle(fontSize: 20, color: Colors.white)),
                   )
               ]
