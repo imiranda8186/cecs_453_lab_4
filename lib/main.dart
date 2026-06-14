@@ -36,6 +36,7 @@ class DetailsScreen extends StatefulWidget{
 }
 
 class _DetailsScreenState extends State<DetailsScreen> {
+    //defining the values for the year selection and rates, and creating the TextEditingController
     int yearselection = 10;
     final TextEditingController _amountController = TextEditingController();
     final List<double> _rates = [0.02, 0.0225, 0.0250, 0.0275, 0.03,
@@ -52,9 +53,11 @@ class _DetailsScreenState extends State<DetailsScreen> {
                                   0.1325, 0.135, 0.1375, 0.14,
                                   0.1425, 0.145, 0.1475, 0.15,];
 
+    //formKey for the text field
     final _formKey = GlobalKey<FormState>();
     double? _selectedValue = 0.02;
 
+    //dispose function for the controller
     @override 
     void dispose(){
       _amountController.dispose();
@@ -142,7 +145,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
                     SizedBox(width: 20),
                     DropdownButton<double>(
                       value: _selectedValue,
-                      hint: Text('Choose rate'),
                       items: _rates.map((double rate){
                         return DropdownMenuItem<double>(
                           value: rate,
@@ -165,7 +167,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                   if (_formKey.currentState!.validate()){
                     //Create the object to be used in the next screen
                     final mortgage = Mortgage(
-                      //Still have to parse the text field into a double, since it's stored as a string.
+                      //Still have to parse the text field into a double, since it's stored as a string
                       amount: double.parse(_amountController.text),
                       years: yearselection,
                       interest: _selectedValue!
@@ -173,7 +175,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
                     //Only navigates if the fields have the correct values
                     Navigator.push(context, MaterialPageRoute(
-                            builder: (context) => ResultsScreen(),
+                            builder: (context) => ResultsScreen(mortgage: mortgage),
                           )
                       );
                     }//End of validator logic
@@ -189,12 +191,24 @@ class _DetailsScreenState extends State<DetailsScreen> {
     }
 }
 
-class ResultsScreen extends StatelessWidget{
+//Results screen takes in the newly created object and displays its contents
+class ResultsScreen extends StatefulWidget{
+  //Creating and passing in the object from the previous screen
+  final Mortgage mortgage;
+  const ResultsScreen({super.key, required this.mortgage});
+
+  @override
+  State<ResultsScreen> createState() => _ResultsScreenState();
+}
+
+class _ResultsScreenState extends State<ResultsScreen> {
+
+  //Value used for the checkbox
+  bool terms = false;
 
   @override
   Widget build(BuildContext context){
     return Scaffold(
-        backgroundColor: Colors.indigo,
         appBar: AppBar(
           backgroundColor: Colors.indigo,
           title: Text("Calculated results")
@@ -205,7 +219,43 @@ class ResultsScreen extends StatelessWidget{
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              //Need to access the data using widget.mortgage
+              //State object doesn't have the data, only the actual class does
+              Text('Amount: ${widget.mortgage.amount}'),
+              Text('Years: ${widget.mortgage.years}'),
+              Text('Interest Rate: ${widget.mortgage.interest}'),
 
+
+              SizedBox(height: 80),
+
+              //Checkbox for Terms and Conditions
+              CheckboxListTile(
+                title: Text('Accept Terms and Conditions'),
+                value: terms,
+                checkColor: Colors.white,
+                activeColor: Colors.green,
+                onChanged: (bool? value) {
+                  setState((){
+                    terms = value!;
+                  });
+                  if (value == true) {
+                    showDialog(context: context, 
+                      builder: (context) => AlertDialog(
+                        title: Text('Terms and Conditions'),
+                        content: Text('Accepted Terms and Conditions'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text('OK') 
+                          )
+                        ]
+
+                      ));
+                  }
+                },
+              )
             ]
 
           )
