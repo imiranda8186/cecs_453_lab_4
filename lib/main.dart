@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+//Have to add dart math import to do the payment calculations
+import 'dart:math';
 
 void main() {
   runApp(const CalcApp());
@@ -31,7 +33,7 @@ class CalcApp extends StatelessWidget {
 
 class DetailsScreen extends StatefulWidget{
   @override
-  _DetailsScreenState createState() => _DetailsScreenState();
+  State<DetailsScreen> createState() => _DetailsScreenState();
 
 }
 
@@ -141,7 +143,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text('Select the interest rate:'),
+                    Text('Select the yearly interest rate:'),
                     SizedBox(width: 20),
                     DropdownButton<double>(
                       value: _selectedValue,
@@ -180,7 +182,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                       );
                     }//End of validator logic
                   },
-                    child: const Text('Calculate', style: TextStyle(fontSize: 20, color: Colors.white)),
+                    child: const Text('Calculate Payments', style: TextStyle(fontSize: 20, color: Colors.white)),
                   )
               ]
 
@@ -208,6 +210,17 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
   @override
   Widget build(BuildContext context){
+
+    //Payment is calculated here
+    final double principal = widget.mortgage.amount;
+    final double rate = widget.mortgage.interest /12;
+    final int numberOfPayments = widget.mortgage.years * 12;
+
+    final double monthlyPayment = principal * rate * pow(1 + rate, numberOfPayments) /
+    (pow(1 + rate, numberOfPayments) -1);
+
+    final double totalPayment = monthlyPayment * numberOfPayments;
+
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.indigo,
@@ -221,10 +234,17 @@ class _ResultsScreenState extends State<ResultsScreen> {
             children: [
               //Need to access the data using widget.mortgage
               //State object doesn't have the data, only the actual class does
-              Text('Amount: ${widget.mortgage.amount}'),
-              Text('Years: ${widget.mortgage.years}'),
-              Text('Interest Rate: ${widget.mortgage.interest}'),
+              Text('Amount: ${widget.mortgage.amount}', style: TextStyle(fontSize: 20)),
+              Text('Years: ${widget.mortgage.years}', style: TextStyle(fontSize: 20)),
+              Text('Yearly Interest Rate: ${widget.mortgage.interest}', style: TextStyle(fontSize: 20)),
 
+
+              SizedBox(height: 80),
+
+
+              //Payment is shown here
+              Text('Monthly Payment: \$${monthlyPayment}'),
+              Text('Total Payment: \$${totalPayment}'),
 
               SizedBox(height: 80),
 
@@ -255,7 +275,19 @@ class _ResultsScreenState extends State<ResultsScreen> {
                       ));
                   }
                 },
-              )
+              ),
+
+              SizedBox(height: 80),
+
+              ElevatedButton(
+                  style: ButtonStyle(backgroundColor: WidgetStateProperty.all(Colors.blue)),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('Return to details screen', style: TextStyle(fontSize: 20, color: Colors.white))
+                  )
+
+
             ]
 
           )
