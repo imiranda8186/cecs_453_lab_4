@@ -6,8 +6,9 @@ void main() {
   runApp(const CalcApp());
 }
 
-
+//Mortgage class, will be passed into the next screen via navigator
 class Mortgage{
+  //Principal, Years, and Interest rate to be used in calculations
   double amount;
   int years;
   double interest;
@@ -19,6 +20,7 @@ class Mortgage{
   });
 
 }
+
 class CalcApp extends StatelessWidget { 
   const CalcApp({super.key}); 
   @override 
@@ -31,6 +33,7 @@ class CalcApp extends StatelessWidget {
   } 
 }
 
+//Home screen, stateful since it updates
 class DetailsScreen extends StatefulWidget{
   @override
   State<DetailsScreen> createState() => _DetailsScreenState();
@@ -162,6 +165,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                   ]
                 ),
                 
+                //Button to navigate to the next screen
                 ElevatedButton(
                   style: ButtonStyle(backgroundColor: WidgetStateProperty.all(Colors.blue)),
                   onPressed: (){
@@ -175,7 +179,8 @@ class _DetailsScreenState extends State<DetailsScreen> {
                       interest: _selectedValue!
                     );
 
-                    //Only navigates if the fields have the correct values
+                    //Only navigates if the fields have the correct values, if not then the 
+                    //Error messages from the validator display in the text field
                     Navigator.push(context, MaterialPageRoute(
                             builder: (context) => ResultsScreen(mortgage: mortgage),
                           )
@@ -216,9 +221,11 @@ class _ResultsScreenState extends State<ResultsScreen> {
     final double rate = widget.mortgage.interest /12;
     final int numberOfPayments = widget.mortgage.years * 12;
 
+    //Using the formula from the sample
     final double monthlyPayment = principal * rate * pow(1 + rate, numberOfPayments) /
     (pow(1 + rate, numberOfPayments) -1);
 
+    //Total payment is just monthly * number of months
     final double totalPayment = monthlyPayment * numberOfPayments;
 
     return Scaffold(
@@ -258,6 +265,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
                   setState((){
                     terms = value!;
                   });
+                  //When the user checks the box, an AlertDialog pops up to confirm that they accepted,
+                  //And they hit the OK button to continue. 
                   if (value == true) {
                     showDialog(context: context, 
                       builder: (context) => AlertDialog(
@@ -279,6 +288,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
               SizedBox(height: 80),
 
+              //Button to traverse back to the details screen to edit the numbers if necessary
               ElevatedButton(
                   style: ButtonStyle(backgroundColor: WidgetStateProperty.all(Colors.blue)),
                   onPressed: () {
